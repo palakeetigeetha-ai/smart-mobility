@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  role         String         @default("Dispatcher") // Dispatcher, Paramedic, Fleet Manager, Admin
+  department   String         @default("Metro Emergency Operations")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  routeHistory RouteHistory[]
+}
+
+model Hospital {
+  id            String   @id @default(uuid())
+  name          String
+  address       String
+  latitude      Float
+  longitude     Float
+  traumaLevel   String   // Level 1, Level 2, Pediatric, Cardiac
+  availableBeds Int      @default(12)
+  specialty     String   @default("Comprehensive Trauma & Emergency")
+  contactPhone  String   @default("+1 (555) 911-0199")
+  status        String   @default("OPERATIONAL") // OPERATIONAL, SURGE, CRITICAL
+  createdAt     DateTime @default(now())
+}
+
+model Incident {
+  id               String   @id @default(uuid())
+  title            String
+  description      String
+  locationName     String
+  latitude         Float
+  longitude        Float
+  severity         String   // CRITICAL, MAJOR, MODERATE, MINOR
+  category         String   // ROADBLOCK, ACCIDENT, FLOODING, INFRASTRUCTURE, PROTEST
+  status           String   @default("ACTIVE") // ACTIVE, RESOLVED
+  radiusMeters     Int      @default(250)
+  reportedBy       String   @default("Emergency Ops Sentinel")
+  clearedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model RouteHistory {
+  id                String   @id @default(uuid())
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id])
+  originName        String
+  originLat         Float
+  originLng         Float
+  destinationName   String
+  destLat           Float
+  destLng           Float
+  emergencyType     String   @default("Code 3 - Critical Trauma")
+  selectedRouteName String
+  distanceKm        Float
+  durationMinutes   Float
+  aiExplanation     String
+  incidentsAvoided  Int      @default(0)
+  createdAt         DateTime @default(now())
+}
